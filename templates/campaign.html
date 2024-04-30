@@ -1,0 +1,403 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style>
+    #dropd{
+      margin-left: 40%;
+      
+      width:20%;
+    }
+    #sub{
+      margin-left: 35%;
+      margin-bottom: 2%;
+    }
+  </style>
+  
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.1/css/jquery.dataTables.min.css">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- semantic UI -->
+    <link rel="stylesheet" type='text/css' href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.14/semantic.min.css">
+    <!--Chart js-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" integrity="sha256-Uv9BNBucvCPipKQ2NS9wYpJmi8DTOEfTA/nH2aoJALw=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" integrity="sha256-aa0xaJgmK/X74WM224KMQeNQC2xYKwlAt08oZqjeF0E=" crossorigin="anonymous" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <title>Document</title>
+    {% include 'cdnlines.html' %}
+    
+      <style>
+          .container {
+          display: flex;
+          align-items: center;
+          justify-content:center;
+          
+        }
+        
+        .image {
+          
+          max-width: 100%;
+          max-height:100%;
+        }
+        .text img{
+          max-width: 40%;
+          max-height:40%;
+        }
+        
+        .text {
+          color:blue;
+          font-family:fantasy;
+          margin-left:400px;
+          font-size: 12px;
+          padding-left: 20px;
+          text-transform: uppercase;
+        }
+
+          .container1 {
+            display: flex;
+        }
+        
+        .flex-child {
+          flex: 1;
+          border: 2px solid black;
+          max-height: 400px;
+      }  
+      
+      .flex-child:first-child {
+          margin-right: 20px;
+          border: 2px solid black;
+      } 
+      .container2 {
+        display: flex;
+        align-items: center;
+    }
+    
+    .left {
+        flex-grow: 1;
+    }
+    
+    .right {
+        margin-left: 20px;
+    }
+    .table-container {
+      width: 100%;
+      max-height: 400px;
+      overflow: auto;
+  }
+  
+  .tableContainer table {
+    width: 100%;
+    table-layout: fixed;
+  }
+  .table-container thead th {
+      position: sticky;
+      top: 0;
+      text-align:center;
+  }
+  
+  
+  th,
+  td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align:center;
+  }
+  th,
+  td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      text-align:center;
+  }
+
+  thead th {
+      position: sticky;
+      top: 0;
+      
+  }
+      
+        </style>
+      <div class="container">
+        <div class="image">
+          <img src="https://www.brightcomgroup.com/wp-content/uploads/2021/02/logo.png" alt="">
+        </div>
+        <div class="text">
+          <img src="{% static '\\images\wel.png' %}">
+          <span style='font-size:30px;margin-left:60px; border:1px solid black'>{{client}}</span>
+        </div>
+        <button style='background-color:#ff4d4d;' onclick="window.location.href = '/login'">Logout</button>
+      </div>
+    <hr size="4" color="black">
+    
+</head>
+
+<body onload='showstats()'>
+
+<div id="" class="container2" >
+  <div class="left">
+  <form action="{% url 'campaign_details' %}" method="post">
+    {% csrf_token %}
+    <input type='text' name='clientname' value='{{client}}' hidden>
+    <label for="campaign_name"  style="display: inline;">Select a campaign:</label>
+    <select name="campaign_name" id="campaign_name" required>
+        {% for i in campaigns %}
+        <option value="{{ i.0 }}">{{i.0}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Submit"  style='background-color:#ffaa80;'>
+</form>
+</div> 
+<div class="right">
+<button id='loadbtn'onclick='LoadReport()' value=true style='float:right; width: 100%;height: 50%px;border-radius: 12px;background-color:#1affd1;'>
+  Load Campaign Report...
+</button>
+</div>
+</div>
+    <p hidden id='data'> {{data}}</p>
+    <p hidden id='dates'> {{dates}}</p>
+    <p hidden id='no_impre'> {{impr}}</p>
+    <p hidden id='no_clicks'> {{clicks}}</p>
+<br>
+    <div id='stats'style='display:block'>
+    <h1 style='text-align:center'>Statistics of <b><u>[{{camp}}]</u></b> Campaign</h1>
+
+    <div class='container1' >
+
+    <div class="flex-child magenta">
+      <canvas id="myChart" width="1000"height="500"></canvas>
+    </div>
+
+    <div class="flex-child green">
+      <canvas id="myChart_cost"  ></canvas>
+    </div>
+    
+  </div>
+</div>
+  
+  
+  <div id="reportdata"  style='display:none' >
+    <h2 style='text-align:center'><b>Campaign Report of <b><u>[{{camp}}]</u></b></h2>
+    <div class="table-container">
+      <table id="myTable"  style="width:100%;text-align:center;" >
+        <thead style='background-color:#66b3ff;'>
+            <tr id="headerRow"></tr>
+            
+        </thead>
+        <tbody id="bodyRows">
+          
+        </tbody>
+
+    </table>
+  
+  <script src="https://ajax.googleapis/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  function generateTable(){
+    const columnNames = JSON.parse("{{camp_col| escapejs}}");
+
+    const rowData = JSON.parse("{{camp_data | escapejs}}")
+
+    //const actionColumnIndex = columnNames.indexOf("action");
+    
+    //alert(actionColumnIndex)
+
+
+
+
+    // Create column headers dynamically
+    var headerRow = $('#headerRow');
+    columnNames.forEach(function(columnName) {
+        headerRow.append('<th>' + columnName + '</th>');
+    });
+
+    //headerRow.append('<th>Actions</th>'); // Add Actions column header
+
+    // Create rows dynamically
+    var bodyRows = $('#bodyRows');
+    rowData.forEach(function(row) {
+        const id = row.id
+        var rowHtml = '<tr>';
+        row.values.forEach((cell)=> {
+            rowHtml += '<td>' + cell + '</td>';
+        });
+        //rowHtml += `<td><a href=/edit_report/${id}><span class="btn btn-success">Edit</span></a> | <a href=/delete_report/${id}> <span class="btn btn-danger ml-3" onclick="return confirm('are you sure you want to delete ?')">Delete</span></a></td>`; // Add Edit and Delete links
+        rowHtml += '</tr>';
+        bodyRows.append(rowHtml);
+    });
+
+  
+    
+  }
+  
+ 
+    
+    
+
+
+  
+  function LoadReport() {
+    console.log('clicked')
+    generateTable()
+    if (document.getElementById('loadbtn').value==='true'){
+      document.getElementById('reportdata').style.display = "block";
+      document.getElementById('stats').style.display = "none";
+      document.getElementById('loadbtn').innerHTML = 'Load Dashboard...'
+      document.getElementById('loadbtn').value = 'false';
+      $('#myTable').dataTable({
+          scrollY: '60vh',
+          scrollX: true,
+          scrollCollapse: true,
+          destroy: true,
+      });
+      
+    }
+    else{
+      document.getElementById('reportdata').style.display = "none";
+      document.getElementById('stats').style.display = "block";
+      document.getElementById('loadbtn').innerHTML = 'Load Campaign Report...'
+      document.getElementById('loadbtn').value = 'true'
+      
+      
+          
+  
+    }
+  }
+</script>
+
+<script>
+  function showstats(){
+  const ctx = document.getElementById('myChart');
+  const cost = document.getElementById('myChart_cost');
+  //-------------------------------------------------------
+  //let datasets = document.getElementById('data').textContent;
+  //datasets = datasets.replace(/\[|\]/g,'').split(',')
+
+
+  //let label = document.getElementById('dates').textContent
+  //label = label.replace(/\[|\]/g,'').split(',')
+
+  //let no_impre= document.getElementById('no_impre').textContent;
+  //no_impre = no_impre.replace(/\[|\]/g,'').split(',')
+
+  //let no_clicks = document.getElementById('no_clicks').textContent;
+  //no_clicks = no_clicks.replace(/\[|\]/g,'').split(',')
+
+  const label= JSON.parse("{{dates | escapejs}}");
+  const fields = JSON.parse("{{fields | escapejs}}");
+  //alert(fields)
+  //const no_impre = JSON.parse("{{impre | escapejs}}");
+  //const no_clicks = JSON.parse("{{clicks | escapejs}}");
+  //const no_sessions = JSON.parse("{{sessions | escapejs}}");
+  //alert(no_sessions)
+
+  const data_set=[]
+  for (const [key, value] of Object.entries(fields)) {
+    if (key ==='no_impre'){
+      data_set.push({
+        type: 'bar',
+        label: 'No of  Impressions',
+        data: value
+      })
+    }
+      else if (key=='no_clicks'){
+        data_set.push({
+        type: 'line',
+        label: 'No of  Clicks',
+        data: value,
+        })
+      }
+      else{
+        data_set.push({
+        type: 'line',
+        label: 'No of  Sessions',
+        data: value,
+        tension: 0.1
+        })
+      }
+  }
+
+  //alert(data_set)
+
+  const total = JSON.parse("{{total | escapejs}}");
+
+  //alert(Object.keys(total))
+
+  
+ 
+
+  //const label = document.getElementById('lable').textContent;
+  //alert(label)
+
+
+  new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets:data_set,
+      labels: label
+  },
+  options: {
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  }
+});
+
+  new Chart(cost, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(total),
+      datasets: [{
+        label: 'Campaign Report',
+        data: Object.values(total),
+        backgroundColor: [
+        'rgba(247, 33, 121,0.7)',
+        'rgba(33, 231, 247,0.7)',
+        'rgba(101, 247, 33,0.7)'
+        ],
+        hoverOffset: 10
+      }]
+    },
+    
+  })
+};
+
+
+</script>
+
+
+{% for message in messages %}
+    {% if message.tags == 'error' %}
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        m='{{message}}';
+        swal("denied!",m,"error")
+    </script>
+    {% endif %}
+    {% endfor %}
+
+    <!--script for success pop up when client form is submitted-->
+
+    {% for message in messages %}
+    {% if message.tags == 'success' %}
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        m='{{message}}';
+        swal("success",m,"success")
+    </script>
+    {% endif %}
+    {% endfor %}
+</body>
+
+</html>

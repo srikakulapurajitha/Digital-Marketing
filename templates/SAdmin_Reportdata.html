@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>report data</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.1/css/jquery.dataTables.min.css">
+
+<style>
+  .container {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, .4);
+    padding:4px;
+   
+  }
+  .achieved ul{
+    list-style-type:none;
+  }
+  .target ul{
+    list-style-type:none;
+    
+  }
+ 
+  .budget-container li{
+    text-align:left;
+    
+    text-decoration:none;
+  }
+
+  .blink-container {
+    display: inline-block;
+    position: relative;
+    top: -10px;
+  }
+
+  .blink-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    
+    animation: blink-animation 1s linear infinite;
+  }
+
+  .blink-text {
+    display: inline-block;
+    font-size:12px;
+    margin-left: 1px;
+    
+    animation: blink-animation 1s linear infinite;
+  }
+
+  @keyframes blink-animation {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  .report-download{
+  background-color: DodgerBlue;
+  
+  color: white;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-size: 12px;
+  }
+  .report-download:hover{
+    background-color: RoyalBlue;
+  }
+  .budget-container {
+    display: flex;
+    justify-content: flex-start;
+    margin: 0 auto;
+  }
+  .table-container {
+    width: 100%;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.tableContainer table {
+  width: 100%;
+  table-layout: fixed;
+}
+.table-container thead th {
+    position: sticky;
+    top: 0;
+    text-align:center;
+}
+
+
+th,
+td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align:center;
+  
+}
+
+</style>
+    </head>
+    {% include 'superadmin_default.html' %}
+     {% block content %}
+     
+    <body>
+     
+    <!-- <h5 style="background-color: black;padding: 10px;"> 
+      <a href="/homepage/" style="margin-left: 10px;color: white;padding: 20px;">Back</a>
+      <a href="/login/" style="margin-left: 990px;color: white;">Logout</a>
+      </h5>
+   -->
+   <center><h2><u><b>Report Details</b></u></h2></center>
+      <form method="POST" style='padding:5px;'>
+          {% csrf_token %}
+          <center>
+          <div>
+          <label>Report Options:</label>
+          <select id="parentDropdown" name='parentValue' onchange="populateDependentDropdown()">
+            <option value='all' name='parentValue'>All</option>
+            {% for i in people %}
+            <option value="{{ i.0 }}">{{ i.1 }}</option>
+            {% endfor %}
+          </select>
+    
+          <select id="dependentDropdown" name='dependValue' style='display:none'>
+            <!-- Dependent dropdown options will be populated dynamically -->
+          </select>
+        </div>
+        
+        <div style='margin-top:2px;'>
+      
+            <label>FROM:</label>
+            <input type="date" name="datef" id="start-date" />
+            <label>TO:</label>
+            <input type="date" name="datet" id="end-date"/>
+            
+            <button type="submit" class="btn btn-warning btn-sm">Search</button>
+        </div>
+          
+  
+        </center>
+        </form>
+    
+
+  <div style="display: flex; justify-content: flex-end; ">
+      
+    <button class='report-download' onclick="exportToExcel()" style='display:inline;'><i class="fa fa-download"></i>Download Report</button>
+  </div>
+  <br>
+  {% if camp_name is not None%}
+  {%if status == 'Closed'%}
+  <div class='container'>
+  <h3>
+    <b><u>Campaign:{{camp_name}}</u></b>
+    <div class="blink-container">
+      <span class="blink-dot" style='background-color: red;'></span>
+      <span class="blink-text" style='color: red;'>Closed</span>
+    </div>
+  </h3>
+  <div class="budget-container">
+    <div class="planned-budget">
+      <ul>
+    {%for key,value in planned.items%}
+        <li>{{key}}:{{value}}</li>
+    {%endfor%}
+      </ul>
+  </div>
+  <div class="target" >
+    
+    <ul>
+      {%for i in target%}
+        {%if i == 'Not Hit' or i == 'Not Set'%}
+        <li >Target:<span style='color:red'><u>{{i}}</u></span></li>
+        {%else%}
+        <li >Target:<span style='color:green'><u>{{i}}</u></span></li>
+        {%endif%}
+    {%endfor%}
+    </ul>
+
+  </div>
+    
+    <div class="achieved">
+      <ul>
+        {%for key,value in achived.items%}
+        <li>Achived:{{value}}</li>
+        {%endfor%}
+      </ul>
+
+    </div>
+  </div>
+</div>
+{%elif status == 'Running' %}
+<div class='container'>
+  <h3>
+    <b><u>Campaign:{{camp_name}}</u></b>
+    <div class="blink-container">
+      <span class="blink-dot" style='background-color: green;'></span>
+      <span class="blink-text" style='color:green;'>Running</span>
+    </div>
+  </h3>
+  <div class="budget-container">
+    <div class="planned-budget">
+      <ul>
+    {%for key,value in planned.items%}
+        <li>{{key}}:{{value}}</li>
+    {%endfor%}
+      </ul>
+  </div>
+  <div class="target" >
+    <ul>
+      {%for i in target%}
+        {%if i == 'Not Hit' or i == 'Not Set'%}
+        <li >Target:<span style='color:red'><u>{{i}}</u></span></li>
+        {%else%}
+        <li >Target:<span style='color:green'><u>{{i}}</u></span></li>
+        {%endif%}
+    {%endfor%}
+    </ul>
+
+  </div>
+    
+    <div class="achieved">
+      <ul>
+        {%for key,value in achived.items%}
+        <li>Achived:{{value}}</li>
+        {%endfor%}
+      </ul>
+
+    </div>
+  </div>
+</div>
+{%endif%}
+  {%endif %}
+    <h2 style='display:none' id='msg'>No Data Available</h2>
+    <div class="table-container">
+      <table id="myTable" class="display" style="width:100%">
+        <thead class="bg-primary">
+            <tr id="headerRow"></tr>
+        </thead>
+        <tbody id="bodyRows"></tbody>
+    </table>
+    </div>
+      
+
+      
+
+      <script>
+          
+      function populateDependentDropdown() {
+          var parentValue = document.getElementById('parentDropdown').value;
+          document.getElementById('dependentDropdown').style.display = 'inline-block'
+          if (parentValue === 'all'){
+            document.getElementById('dependentDropdown').value = null
+            document.getElementById('dependentDropdown').style.display='none'
+          }
+          else{
+          // Make an AJAX request to fetch the dependent dropdown options
+          $.ajax({
+              url: '/fetch_dependent_options/',  // Replace with the URL that handles the AJAX request
+              method: 'GET',
+              data: { parentValue: parentValue },
+              success: function(response) {
+                  var dependentDropdown = document.getElementById('dependentDropdown');
+                  dependentDropdown.innerHTML = '';  // Clear previous options
+      
+                  // Parse the response as JSON
+                  var options = response;
+                  //console.log(options[0].campaign_name)
+      
+                  // Populate the dependent dropdown options
+                  for (var i = 0; i < options.length; i++) {
+                      var option = document.createElement('option');
+                      option.value = options[i].campaign_name;
+                      option.text = options[i].campaign_name
+                      dependentDropdown.appendChild(option);
+                  }
+              },
+              error: function() {
+                  // Handle error
+              }
+          });
+        }
+      }
+          
+  </script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script>
+    function exportToExcel() {
+      const table = document.getElementById("myTable");
+      //alert(Array.from({length: JSON.parse("{{col | escapejs}}").length}, (v, i) => i) )
+      const selectedColumns = Array.from({length: JSON.parse("{{col | escapejs}}").length}, (v, i) => i)//[0,1,2,3,4,5,6,7,8,9]; // Specify the indexes of the columns you want to export (zero-based) in the desired order
+  
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([]);
+      
+      // Copy table heading to the worksheet
+      const headerRow = [];
+      for (let j = 0; j < selectedColumns.length; j++) {
+        const columnIndex = selectedColumns[j];
+        headerRow.push(table.rows[0].cells[columnIndex].innerText);
+      }
+      XLSX.utils.sheet_add_aoa(ws, [headerRow], { origin: "A1" });
+  
+      // Copy selected columns and all rows to the worksheet
+      const rows = table.rows;
+      const rd = JSON.parse("{{rd | escapejs}}")
+      
+      //alert(rd[0])
+      for (let i = 0; i < rd.length; i++) {
+        
+        const rowData = rd[i];
+       
+        //alert(rowData)
+        XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: -1 });
+      }
+  
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet JS");
+  
+      // Export workbook to Excel file
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "binary" });
+  
+      function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xff;
+        return buf;
+      }
+  
+      const fileName = "Report.xlsx";
+      const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+      if (navigator.msSaveBlob) {
+        // For IE
+        navigator.msSaveBlob(blob, fileName);
+      } else {
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", fileName);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+    }
+  </script>
+  
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            //var columnNames = ['Name', 'Position', 'Office', 'Age'];
+            /*var rowData = [
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                ['Tiger Nixon', 'System Architect', 'Edinburgh', '61'],
+                // Add more rows here
+            ]; */
+            const columnNames = JSON.parse("{{col | escapejs}}");
+
+            const rowData = JSON.parse("{{data | escapejs}}")
+
+            const actionColumnIndex = columnNames.indexOf("action");
+            
+            //alert(actionColumnIndex)
+
+
+
+
+            // Create column headers dynamically
+            var headerRow = $('#headerRow');
+            columnNames.forEach(function(columnName) {
+                headerRow.append('<th>' + columnName + '</th>');
+            });
+
+            headerRow.append('<th>Actions</th>'); // Add Actions column header
+
+            // Create rows dynamically
+            var bodyRows = $('#bodyRows');
+            rowData.forEach(function(row) {
+                const id = row.id
+                var rowHtml = '<tr>';
+                row.values.forEach((cell)=> {
+                    rowHtml += '<td>' + cell + '</td>';
+                });
+                rowHtml += `<td><a href=/edit_report/${id}><span class="btn btn-success">Edit</span></a> | <a href=/delete_report/${id}> <span class="btn btn-danger ml-3" onclick="return confirm('are you sure you want to delete ?')">Delete</span></a></td>`; // Add Edit and Delete links
+                rowHtml += '</tr>';
+                bodyRows.append(rowHtml);
+            });
+
+            $('#myTable').DataTable({
+                scrollY: '35vh',
+                scrollX: true,
+                scrollCollapse: true
+              
+            });
+        });
+    </script>
+  
+  
+
+  <script>
+
+
+      
+      
+      //----------------------------------------------------------------
+
+
+     const startDateInput = document.getElementById("start-date");
+    const endDateInput = document.getElementById("end-date");
+
+startDateInput.addEventListener("change", () => {
+  const startDateValue = startDateInput.value;
+  endDateInput.min = startDateValue;
+});
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById("end-date").setAttribute("max", today);
+
+  //console.log(document.getElementById("Report_Table").textContent)
+    
+  
+</script>
+      
+      
+    {% endblock %}
+</body>
+</html>

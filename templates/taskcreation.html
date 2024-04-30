@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>task creation</title>
+    {% include 'cdnlines.html' %}
+    
+<style>
+    body{
+        background-color:aliceblue;
+    }
+    /* form{
+        background-color:rgb(155, 187, 213);
+    } */
+    .impressions-fields, .clicks-fields, .session-fields {
+        display:none;
+        opacity: 0;
+        visibility: hidden;
+       
+        
+    }
+   
+    .show {
+       
+        transition: opacity 1s, visibility 1s;
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .field-container {
+        display: inline-block;
+        margin-right: 10px;
+       
+      }
+    
+    
+    .checkbox-container label {
+        margin-right: 10px;
+    }
+    
+    
+    
+    .field-container label {
+        margin-right: 5px;
+    }
+
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: black;
+      }
+      
+      li {
+        float: left;
+      }
+      
+      li a {
+        display: block;
+        color: rgb(164, 164, 164);
+        text-align: center;
+        font-size:14px;
+        padding: 14px 18px;
+       
+        text-decoration: none;
+      }
+      
+      li a:hover {
+        color: white;
+        text-decoration: none;
+      }
+      .client{
+        text-align:center;
+        border:1px solid black;
+        margin:10px;
+        padding:5px;
+
+      }
+
+     
+      .client label{
+        display:none;
+      }
+
+</style>
+</head>
+<body>
+      
+            
+              <ul >
+                
+                <li><a href="/clientform/">Client Form</a></li>
+                <li><a href="/viewclientdetails/">Client Details</a></li>
+                <li><a href="/taskcreation/">Campaign Data</a></li>
+                <li><a href="/taskdata/">Campaign Details</a></li>
+                <li><a href="/u_report/">Report Form</a></li>
+                
+                <li><a href="/reportdata/">Report Details</a></li>
+                <li><a href="/login/" >Logout</a></li>
+                
+              </ul>
+          
+    
+    <div class="container">
+        <div class="row">
+            <div class="offset-md-3 col-md-6">
+                <form method="POST" id="det" name="form1" onsubmit="required()" class="shadow-lg px-4 py-4 mt-5" style="font-size: 18px; ">
+                {% csrf_token %}    
+                    <h2 class="text-center">Client Requirements</h2>
+                    <br>
+                 <label>Client Name:</label>   
+                <select name="name">
+                    
+                        {% for person in people %}
+                        <option value="{{ person }}">{{ person.1 }}</option>
+                        {% endfor %}
+                        
+                     
+                </select><br>
+            
+                <label>Campaign Name <b style="color: red;">*</b> : </label>
+                <input type="text"  required class="form-control" name="campaign_name">
+                <label>Start Date:<b style="color: red;">*</b></label>
+                <input type="date"  required id="start-date" class="form-control" name="start_date">
+                <label>End Date:<b style="color: red;">*</b></label>
+                <input type="date" id="end-date" required class="form-control" name="end_date">
+                <div style='text-align:center;margin:15px;border:1px solid black'>
+                <label>Campaign Based On : </label>
+                <input type="checkbox" id='im' name="option" value="impressions"> Impressions
+                </label>
+                        <label>
+                    <input type="checkbox" id='click'  name="option" value="clicks"> Clicks
+                </label>
+                        <label>
+                    <input type="checkbox" id='session'  name="option" value="session"> Session
+                </label>
+                </div>
+                <marquee behavior="scroll" direction="left" style='color:red;font-weight:bold'>*Select the field checkbox for display in Report Page...</marquee>
+                <div class="impressions-fields">
+                    <div class="field-container">
+                        <label for='pl_im'>Planned Impressions: </label><input style='height:15px;width:15px;' type="checkbox" id='chk-imp' name="selected_col" value='no_of_impressions'>
+                        <input type="number" min="0"  class="form-control" name="planned_impressions" id='pl_im'>
+                        
+                    </div>
+                    <div class="field-container">
+                        <label for='pl_cpm'>Planned CPM :</label><input style='height:15px;width:15px;' type="checkbox" name="selected_col" id='chk-CPM' value='cpm'>
+                        <input type="number" min="0" step=0.01 class="form-control" name="planned_cpm" id='pl_cpm'>
+                        
+                    </div>
+                </div>
+                <div class="clicks-fields">
+                    <div class="field-container">
+                        <label for='pl_clicks'>Planned Clicks : </label><input style='height:15px;width:15px;' type="checkbox" name="selected_col" id='chk-clicks' value='no_of_clicks'>
+                        <input type="number" min="0"  class="form-control" name="planned_clicks" id='pl_clicks'>
+                    </div>
+                    <div class="field-container">
+                        <label for='pl_cpc'>Planned CPC : </label><input style='height:15px;width:15px;' type="checkbox" name="selected_col" id='chk-CPC' value='cpc'>
+                        <input type="number" min="0" step=0.01 class="form-control" name="planned_cpc" id='pl_cpc'>
+                        
+                    </div>
+                </div>
+                <div class="session-fields">
+                    <div class="field-container">
+                        <label for='pl_session'>Planned Session : </label> <input style='height:15px;width:15px;' type="checkbox" name="selected_col" id='chk-sessions' value='no_of_session'>
+                        <input type="number" min="0"  class="form-control" name="planned_session" id='pl_session'>
+                    </div>
+                    <div class="field-container">
+                        <label for='planned_cps'>Planned Cost Per Session : </label> <input style='height:15px;width:15px;' type="checkbox" name="selected_col" id='chk-CPS' value='cost_per_session'>
+                        <input type="number" min="0" step=0.01 class="form-control" name="planned_cps" id='pl_cps'>
+                    </div>
+                </div>
+                
+
+                <div class="budget">
+                    <div class="field-container">
+                        <label for='bud_impr'>Planned Budget(Impressions) : </label> 
+                        <input type="number" min="0"  class="form-control" name="pl_budget_impression" id='bud_impr' readonly>
+                    </div>
+                    <div class="field-container">
+                        <label for='bud_clicks'>Planned Budget(Clicks): </label> 
+                        <input type="number" min="0" step=0.01 class="form-control" name="pl_budget_clicks" id='bud_clicks' readonly>
+                    </div>
+                    <div class="field-container">
+                        <label for='bud_sessions'>Planned Budget(Sessions): </label>
+                        <input type="number" min="0" step=0.01 class="form-control" name="pl_budget_sessions" id='bud_sessions' readonly>
+                    </div>
+                    <div class="field-container">
+                        <label for='ctr'>CTR in %: </label><input style='height:15px;width:15px;' type="checkbox" name="selected_col" value='ctr' >
+                        <input type="number" class="form-control" name="ctr" id='ctr' >
+                    </div>
+                </div>
+                <div class='client '>
+                <h5>Client Report Access</h5>
+                <label id='cli_impressions'>
+                    <input type="checkbox" id='cl_im' name="client_access" value="no_of_impressions"> Impressions
+                </label>
+                <label id='cli_click'>
+                    <input type="checkbox" id='cl_clicks'  name="client_access" value="no_of_clicks"> Clicks
+                </label>
+                <label id='cli_session' >
+                    <input type="checkbox" id='cl_sessions'  name="client_access" value="no_of_sessions"> Sessions
+                </label>
+                <label id='cli_CPM'>
+                    <input type="checkbox" id='cl_CPM'  name="client_access" value="cpm"> CPM
+                </label>
+                <label id='cli_CPC'>
+                    <input type="checkbox" id='cl_CPC'  name="client_access" value="cpc"> CPC
+                </label>
+                <label id='cli_CPS'>
+                    <input type="checkbox" id='cl_CPS'  name="client_access" value="cps"> CPS
+                </label>
+                <label id='cli_total_CPM'>
+                    <input type="checkbox" id='cl_total_CPM'  name="client_access" value="total_cpm"> Total_CPM
+                </label>
+                <label id='cli_total_CPC'>
+                    <input type="checkbox" id='cl_total_CPC'  name="client_access" value="total_cpc"> Total_CPC
+                </label>
+                <label id='cli_total_CPS'>
+                    <input type="checkbox" id='cl_total_CPS'  name="client_access" value="total_cps"> Total_CPS
+                </label>
+                <label id='cli_CTR' style='display:inline-block;'>
+                    <input type="checkbox" id='cl_CTR'  name="client_access" value="ctr"> CTR
+                </label>
+            </div>
+
+                <center class="mt-3">
+                <input onclick="Sub()" id="sub" type="submit" value="SUBMIT" class="btn bg-success text-white">
+                <input type="reset" value="Clear" id="clr" class="ml-3 btn bg-danger text-white">
+                </center>
+                </form>
+            </div>
+        </div> 
+    </div>
+        
+    </div>
+    
+
+    <script>
+        function reset(field){
+            if(field==='impressions'){
+            document.getElementById("pl_im").value='';
+            document.getElementById("pl_cpm").value='';
+            document.getElementById('bud_impr').value=0;
+            //alert( document.getElementById('cl_im').checked)
+            document.getElementById('cl_im').checked=false;
+            document.getElementById('cl_CPM').checked=false;
+            document.getElementById('cl_total_CPM').checked=false;
+            document.getElementById('chk-imp').checked=false;
+            document.getElementById('chk-CPM').checked=false;
+
+
+            }else if(field==='clicks'){
+            document.getElementById("pl_clicks").value='';
+            document.getElementById("pl_cpc").value='';
+            document.getElementById('bud_clicks').value=0;
+            //alert( document.getElementById('cl_im').checked)
+            document.getElementById('cl_clicks').checked=false;
+            document.getElementById('cl_CPC').checked=false;
+            document.getElementById('cl_total_CPC').checked=false;
+            document.getElementById('chk-clicks').checked=false;
+            document.getElementById('chk-CPC').checked=false;
+            }
+            else{
+            document.getElementById("pl_session").value='';
+            document.getElementById("pl_cps").value='';
+            document.getElementById('bud_sessions').value=0;
+            //alert( document.getElementById('cl_im').checked)
+            document.getElementById('cl_sessions').checked=false;
+            document.getElementById('cl_CPS').checked=false;
+            document.getElementById('cl_total_CPS').checked=false;
+            document.getElementById('chk-sessions').checked=false;
+            document.getElementById('chk-CPS').checked=false;
+        }
+        }
+        const customOption = document.querySelector('input[value="impressions"]');
+        const customOption1 = document.querySelector('input[value="clicks"]');
+        const customOption2 = document.querySelector('input[value="session"]');
+        const customFields = document.querySelector('.impressions-fields');
+        const customFields1 = document.querySelector('.clicks-fields');
+        const customFields2 = document.querySelector('.session-fields');
+
+        
+
+
+        customOption.addEventListener('change', () => {
+            
+            if (customOption.checked) {
+                customFields.style.display = 'inline-block';
+                document.getElementById('cli_impressions').style.display='inline-block'
+                document.getElementById('cli_CPM').style.display='inline-block'
+                document.getElementById('cli_total_CPM').style.display='inline-block'
+    
+                setTimeout(() => {
+                    customFields.style.opacity = '1';
+                    customFields.classList.add('show');
+                    
+                    
+                }, 100);
+                
+            } else {
+                //customFields.style.display = 'none';
+                //customFields.classList.remove('show');
+                
+                document.getElementById('cli_impressions').style.display='none'
+                document.getElementById('cli_CPM').style.display='none'
+                document.getElementById('cli_total_CPM').style.display='none'
+                
+                customFields.style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('')
+                    customFields.style.display = 'none';
+                    customFields.classList.remove('show');
+                    reset('impressions')
+                    
+                }, 10);
+                
+            }
+        });
+        customOption1.addEventListener('change', () => {
+            if (customOption1.checked) {
+                customFields1.style.display = 'block';
+                document.getElementById('cli_click').style.display='inline-block'
+                document.getElementById('cli_CPC').style.display='inline-block'
+                document.getElementById('cli_total_CPC').style.display='inline-block'
+    
+                setTimeout(() => {
+                    customFields1.style.opacity = '1';
+                    customFields1.classList.add('show');
+                }, 100);
+                
+            } else {
+                //customFields.style.display = 'none';
+                //customFields.classList.remove('show');
+                document.getElementById('cli_click').style.display='none'
+                document.getElementById('cli_CPC').style.display='none'
+                document.getElementById('cli_total_CPC').style.display='none'
+                customFields1.style.opacity = '0';
+                setTimeout(() => {
+                    customFields1.style.display = 'none';
+                    customFields1.classList.remove('show');
+                    reset('clicks')
+                }, 10);
+                
+            }
+        });
+
+        customOption2.addEventListener('change', () => {
+            if (customOption2.checked) {
+                customFields2.style.display = 'block';
+                document.getElementById('cli_session').style.display='inline-block'
+                document.getElementById('cli_CPS').style.display='inline-block'
+                document.getElementById('cli_total_CPS').style.display='inline-block'
+    
+                setTimeout(() => {
+                    customFields2.style.opacity = '1';
+                    customFields2.classList.add('show');
+                }, 100);
+                
+            } else {
+                //customFields.style.display = 'none';
+                //customFields.classList.remove('show');
+                customFields2.style.opacity = '0';
+                document.getElementById('cli_session').style.display='none'
+                document.getElementById('cli_CPS').style.display='none'
+                document.getElementById('cli_total_CPS').style.display='none'
+                setTimeout(() => {
+                    customFields2.style.display = 'none';
+                    customFields2.classList.remove('show');
+                    reset('session')
+                }, 10);
+                
+            }
+        });
+
+        
+    </script>
+
+    <script>
+        const startDateInput = document.getElementById("start-date");
+        const endDateInput = document.getElementById("end-date");
+
+startDateInput.addEventListener("change", () => {
+  const startDateValue = startDateInput.value;
+  endDateInput.min = startDateValue;
+});
+
+function updateResult() {
+    var im = document.getElementById("pl_im").value;
+    var cpm = document.getElementById("pl_cpm").value;
+    var click = document.getElementById("pl_clicks").value;
+    var cpc = document.getElementById("pl_cpc").value;
+    var session = document.getElementById("pl_session").value;
+    var cps = document.getElementById("pl_cps").value;
+
+    var im_res = (im*cpm)/1000;
+    var click_res = click * cpc;
+    var session_res = session*cps
+    
+    document.getElementById("bud_impr").value=im_res
+    document.getElementById("bud_clicks").value=click_res
+    document.getElementById("bud_sessions").value=session_res
+    //budget!==0?document.getElementById("pl_budget").value = budget:document.getElementById("pl_budget").value ='';
+    var ctr_res = ((click/im)*100).toFixed(2)
+   isNaN(ctr_res) || (!isFinite(ctr_res)) ?document.getElementById("ctr").value =0 :document.getElementById("ctr").value = ctr_res
+    
+    
+}
+
+document.addEventListener("input", updateResult);
+
+
+
+    </script>
+
+    <!--script for success pop up when client form is submitted-->
+
+    {% for message in messages %}
+    {% if message.tags == 'success' %}
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        m='{{message}}';
+        swal("success",m,"success")
+    </script>
+    {% endif %}
+    {% endfor %}
+
+    <!--script for deinied pop up when same employee id is registered-->
+    {% for message in messages %}
+    {% if message.tags == 'error' %}
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        m='{{message}}';
+        swal("denied!",m,"error")
+    </script>
+    {% endif %}
+    {% endfor %}
+
+
+</body>
+</html>

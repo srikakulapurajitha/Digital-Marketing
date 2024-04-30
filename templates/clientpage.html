@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style>
+    #dropd{
+      margin-left: 40%;
+      
+      width:20%;
+    }
+    #sub{
+      margin-left: 35%;
+      margin-bottom: 2%;
+    }
+  </style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    {% include 'cdnlines.html' %}
+    <img src="https://www.brightcomgroup.com/wp-content/uploads/2021/02/logo.png" alt="">
+    {% if logo %}
+    {% for i in logo %}
+    <img src="{{i.image.url}}" style="width: 150px; height: 100px; margin-left: 60%;" class="mt-2">
+    {% endfor %}
+    {% endif %}
+    <hr size="4" color="black">
+
+</head>
+
+<body>
+
+<div id="dropd" class="px-3 py-3 shadow-lg mb-3" >
+  <form action="{% url 'campaign_details' %}" method="post">
+    {% csrf_token %}
+    <label for="campaign_name" class="ml-5 ">Select a campaign:</label>
+    <select name="campaign_name" id="campaign_name" required>
+        {% for i in client %}
+        <option value="{{ i.campaign_name }}">{{i.campaign_name}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Submit" id="sub">
+</form>
+</div>
+   
+  
+    <table  id="example" class="display table table-bordered">
+      <thead class="bg-info" id="W">
+        <tr >
+  
+          <th class="text-center"  >Campaign Name</th>
+          <th class="text-center"  >Date</th>
+          <th class="text-center"  >NO OF IMPRESSIONS</th>
+          <th class="text-center" >NO OF CLICKS</th>
+          <th class="text-center" >COST PER IMPRESSIONS</th>
+          <th class="text-center" >COST PER CLICK</th>
+          <th class="text-center" >TOTAL COST PER IMPRESSIONS</th>
+          <th class="text-center" >TOTAL COST PER CLICKS</th>
+          <th class="text-center" >TOTAL COST PER Day</th>
+          
+         
+
+        </tr>
+      </thead>
+      <tbody id="W">
+          {% if campaign %}
+          {% for i in campaign %}
+          
+          
+        <tr style="font-size: 15px;">
+        
+          <td>{{i.campaign_name}}</td>
+          <td style="width: 10%;">{{i.date}}</td>
+          <td>{{i.no_of_impressions}}</td>
+          <td>{{i.no_of_clicks}}</td>
+          <td>{{i.cost_per_impressions}}</td>
+          <td>{{i.cost_per_click}}</td>
+          <td>{{i.total_cost_per_impressions}}</td>
+          <td>{{i.total_cost_per_click}}</td>
+          <td>{{i.cost_per_day}}</td>
+          
+       
+          
+        </tr>
+        {% endfor %}
+        {% endif %}
+          
+        
+      </tbody>
+    </table>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>report data</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.1/css/jquery.dataTables.min.css">
+
+<style>
+  .container {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, .4);
+    height:15vh;
+    padding:4px;
+   
+  }
+
+  .blink-container {
+    display: inline-block;
+    position: relative;
+    top: -10px;
+  }
+
+  .blink-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    
+    animation: blink-animation 1s linear infinite;
+  }
+
+  .blink-text {
+    display: inline-block;
+    font-size:12px;
+    margin-left: 1px;
+    
+    animation: blink-animation 1s linear infinite;
+  }
+
+  @keyframes blink-animation {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  .report-download{
+  background-color: DodgerBlue;
+  
+  color: white;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-size: 12px;
+  }
+  .report-download:hover{
+    background-color: RoyalBlue;
+  }
+  .budget-container {
+    display: flex;
+    justify-content: space-between;
+    
+    margin: 0 auto;
+  }
+  .table-container {
+    width: 100%;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.tableContainer table {
+  width: 100%;
+  table-layout: fixed;
+}
+.table-container thead th {
+    position: sticky;
+    top: 0;
+}
+
+
+th,
+td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+    text-align: center;
+}
+
+</style>
+    </head>
+    {% include 'superadmin_default.html' %}
+     {% block content %}
+     
+    <body>
+     
+    <!-- <h5 style="background-color: black;padding: 10px;"> 
+      <a href="/homepage/" style="margin-left: 10px;color: white;padding: 20px;">Back</a>
+      <a href="/login/" style="margin-left: 990px;color: white;">Logout</a>
+      </h5>
+   -->
+    
+    <form method="POST">
+      {% csrf_token %}
+      <center><h2>Report Details</h2></center><br>
+    <center>
+    <label>FROM</label>
+    <input type="date" name="datef" id="start-date" required/>
+    <label>To</label>
+    <input type="date" name="datet" id="end-date" required/>
+    <button type="submit" class="btn btn-warning btn-sm">Search</button>
+    </center>
+  </form>
+
+  <div style="display: flex; justify-content: space-between;">
+    <div>
+      <form method="POST">
+        {% csrf_token %}
+        <select id="parentDropdown" name='parentValue' onchange="populateDependentDropdown()">
+          <option value='all' name='parentValue'>All</option>
+          {% for i in people %}
+          <option value="{{ i.0 }}">{{ i.1 }}</option>
+          {% endfor %}
+        </select>
+  
+        <select id="dependentDropdown" name='dependValue' style='display:none'>
+          <!-- Dependent dropdown options will be populated dynamically -->
+        </select>
+        <button type="submit" style='background-color:#66e0ff;'>Search</button>
+      </form>
+    </div>
+  
+    <button class='report-download' onclick="exportToExcel()" style='display:inline;'><i class="fa fa-download"></i>Download Report</button>
+  </div>
+  <br>
+  {% if camp_name is not None%}
+  {%if status == 'Closed'%}
+  <div class='container'>
+  <h3>
+    <b><u>Campaign:{{camp_name}}</u></b>
+    <div class="blink-container">
+      <span class="blink-dot" style='background-color: red;'></span>
+      <span class="blink-text" style='color: red;'>Closed</span>
+    </div>
+  </h3>
+  <div class="budget-container">
+    <div class="planned-budget">Planned Budget:{{planned}}</div>
+    {%if target == 'NOT SET' or target == 'Not Hit'%}
+    <div class="target" >Target:<span style='color:red;'><u><b>{{target}}</b></u></span></div>
+    {%else%}
+    <div class="target"> Target:<span style='color:green;'><u><b>{{target}}</b></u></span></div>
+    {%endif%}
+    <div class="achieved">Achieved:{{achived}}</div>
+  </div>
+</div>
+{%elif status == 'Running' %}
+<div class='container'>
+  <h3>
+    <b><u>Campaign:{{camp_name}}</u></b>
+    <div class="blink-container">
+      <span class="blink-dot" style='background-color: green;'></span>
+      <span class="blink-text" style='color:green;'>Running</span>
+    </div>
+  </h3>
+  <div class="budget-container">
+    <div class="planned-budget">Planned Budget:{{planned}}</div>
+    {%if target == 'NOT SET' or target == 'Not Hit'%}
+    <div class="target" >Target:<span style='color:red;'><u><b>{{target}}</b></u></span></div>
+    {%else%}
+    <div class="target"> Target:<span style='color:green;'><u><b>{{target}}</b></u></span></div>
+    {%endif%}
+    <div class="achieved">Achieved:{{achived}}</div>
+  </div>
+</div>
+{%endif%}
+  {%endif %}
+    <h2 style='display:none' id='msg'>No Data Available</h2>
+    <div class="table-container">
+    <table  id="Report_Table" class="display" style='display:block'>
+        <thead class="bg-primary" id="Wx">
+          <tr id='columnNamesRow'>
+            
+          </tr>
+        </thead>
+        <tbody id="W">
+           
+        </tbody>
+      </table>
+    </div>
+      
+
+      
+
+      <script>
+          
+      function populateDependentDropdown() {
+          var parentValue = document.getElementById('parentDropdown').value;
+          document.getElementById('dependentDropdown').style.display = 'inline-block'
+          if (parentValue === 'all'){
+            document.getElementById('dependentDropdown').value = Null
+          }
+          else{
+          // Make an AJAX request to fetch the dependent dropdown options
+          $.ajax({
+              url: '/fetch_dependent_options/',  // Replace with the URL that handles the AJAX request
+              method: 'GET',
+              data: { parentValue: parentValue },
+              success: function(response) {
+                  var dependentDropdown = document.getElementById('dependentDropdown');
+                  dependentDropdown.innerHTML = '';  // Clear previous options
+      
+                  // Parse the response as JSON
+                  var options = response;
+                  //console.log(options[0].campaign_name)
+      
+                  // Populate the dependent dropdown options
+                  for (var i = 0; i < options.length; i++) {
+                      var option = document.createElement('option');
+                      option.value = options[i].campaign_name;
+                      option.text = options[i].campaign_name
+                      dependentDropdown.appendChild(option);
+                  }
+              },
+              error: function() {
+                  // Handle error
+              }
+          });
+        }
+      }
+      
+  
+      
+      
+  </script>
+  <script src="https://ajax.googleapis/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.1/js/jquery.dataTables.min.js"></script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script>
+    function exportToExcel() {
+      const table = document.getElementById("Report_Table");
+      //alert(Array.from({length: JSON.parse("{{col | escapejs}}").length}, (v, i) => i) )
+      const selectedColumns = Array.from({length: JSON.parse("{{col | escapejs}}").length-1}, (v, i) => i)//[0,1,2,3,4,5,6,7,8,9]; // Specify the indexes of the columns you want to export (zero-based) in the desired order
+  
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([]);
+      
+      // Copy table heading to the worksheet
+      const headerRow = [];
+      for (let j = 0; j < selectedColumns.length; j++) {
+        const columnIndex = selectedColumns[j];
+        headerRow.push(table.rows[0].cells[columnIndex].innerText);
+      }
+      XLSX.utils.sheet_add_aoa(ws, [headerRow], { origin: "A1" });
+  
+      // Copy selected columns and all rows to the worksheet
+      const rows = table.rows;
+      const rd = JSON.parse("{{rd | escapejs}}")
+      
+      //alert(rd.length)
+      for (let i = 0; i < rd.length; i++) {
+        
+        const rowData = rd[i];
+       
+        //alert(rowData)
+        XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: -1 });
+      }
+  
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet JS");
+  
+      // Export workbook to Excel file
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "binary" });
+  
+      function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xff;
+        return buf;
+      }
+  
+      const fileName = "Report.xlsx";
+      const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+      if (navigator.msSaveBlob) {
+        // For IE
+        navigator.msSaveBlob(blob, fileName);
+      } else {
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", fileName);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+    }
+  </script>
+  
+
+  <script>
+    $(document).ready(function() {
+      generateTable();
+  });
+
+    function generateTable() {
+        //alert(JSON.parse("{{data | escapejs}}"))
+        // Get the table element, the row where column names will be inserted, and the table body
+        const table = document.getElementById("Report_Table");
+        const columnNamesRow = document.getElementById("columnNamesRow");
+        const tableBody = document.getElementById("W");
+
+        // Define an array of column names
+        const columnNames = JSON.parse("{{col | escapejs}}");
+
+        const rowData = JSON.parse("{{data | escapejs}}")
+
+        // Define the index of the action column
+        const actionColumnIndex = columnNames.indexOf("action");
+
+        //alert(rowData[0])
+
+        // Clear any existing column names and rows
+        columnNamesRow.innerHTML = "";
+        tableBody.innerHTML = "";
+
+        // Loop through the column names array and create table header cells
+        //alert(columnNames.length)
+      columnNames.forEach((columnName) => {
+        const th = document.createElement("th");
+        
+        th.textContent = columnName;
+        columnNamesRow.appendChild(th);
+      });
+
+     // Loop through the row data and create table rows with cells
+     rowData.forEach((rowValues) => {
+      // Create a table row
+      const row = document.createElement("tr");
+      const id = rowValues.id
+      //alert(rowValues.values.length)
+
+      // Loop through the values in the row and create table cells
+      rowValues.values.forEach((cellValue, index) => {
+          const td = document.createElement("td");
+          td.textContent = cellValue;
+          //alert(cellValue)
+
+          // Add action links to the "Action" column
+          if (index === actionColumnIndex) {
+              //alert(actionColumnIndex)
+              const actionLinks = document.createElement("div");
+              actionLinks.classList.add("action-links");
+
+              const editLink = document.createElement("a");
+              editLink.textContent = "Edit";
+              editLink.href = `/edit_report/${id}`; // Add the URL for edit functionality
+              editLink.classList.add("btn", "btn-success");
+              actionLinks.appendChild(editLink);
+
+              const deleteLink = document.createElement("a");
+              deleteLink.textContent = "Delete";
+              deleteLink.href = `/delete_report/${id}`; // Add the URL for delete functionality
+              deleteLink.classList.add("btn", "btn-danger");
+              deleteLink.onclick = deleteFunction; // Set the onclick function for delete functionality
+              actionLinks.appendChild(deleteLink);
+
+              td.appendChild(actionLinks);
+          }
+
+          row.appendChild(td);
+      });
+
+      // Add the row to the table body
+      tableBody.appendChild(row);
+  });
+    
+
+    // Call the generateTable function to create the column names and row
+    $("#Report_Table").DataTable({
+      scrollX: "2000px",
+      scrollY: "2000px",
+      scrollCollapse: true,
+      paging: true,
+      fixedHeader: true,
+      responsive: true,
+      "columnDefs": [
+    { "width": "20%", "targets": 0 }
+  ]
+    });
+  }
+
+   // Example functions for edit and delete actions
+   
+
+function deleteFunction() {
+  return confirm('are you sure you want to delete ?')
+}
+  
+</script>
+  
+  
+
+  <script>
+
+
+      
+      
+      //----------------------------------------------------------------
+
+
+     const startDateInput = document.getElementById("start-date");
+    const endDateInput = document.getElementById("end-date");
+
+startDateInput.addEventListener("change", () => {
+  const startDateValue = startDateInput.value;
+  endDateInput.min = startDateValue;
+});
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById("end-date").setAttribute("max", today);
+
+  console.log(document.getElementById("Report_Table").textContent)
+    
+  
+</script>
+      
+      
+    {% endblock %}
+</body>
+</html>
+
+
+
+
+
+
+if request.method=="POST":
+        #print(request)
+        datef=request.POST.get("datef")
+        datet=request.POST.get("datet")
+        parentValue = request.POST.get('parentValue')
+        dependValue = request.POST.get('dependValue')
+
+        head = ['q_app_user_report.id', 'clientname', 'q_app_user_report.campaign_name', 'date', 'no_of_impressions', 'no_of_clicks', 'no_of_sessions', 'cpm', 'cpc', 'cost_per_session', 'total_cpm', 'total_cpc', 'total_cps', 'total_cost', 'q_app_user_report.ctr', 'clientid_id']
+        #print(parentValue,dependValue)
+        print(datef,datet)
+        if (datef is not None and datef != '') and (datet is not None and datet != ''):
+            date_q=" and (date >= '{}' and date <='{}');".format(datef,datet)
+            if parentValue == 'all' and dependValue is None:
+                q = 'select q_app_user_report.id,q_app_user_report.clientname,  q_app_user_report.campaign_name,date, no_of_impressions,no_of_clicks,no_of_sessions,cpm,cpc,cost_per_session,total_cpm,total_cpc,total_cps,q_app_user_report.ctr,total_cost,start_date,end_date from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name order by date desc;'
+            elif parentValue != 'all' and (dependValue=='' or dependValue is None):
+
+        #queryset = user_report.objects.filter(date__range=[datef, datet])
+        else:
+            camp_name = None
+            if parentValue == 'all' and dependValue is None:
+                q = 'select q_app_user_report.id,q_app_user_report.clientname,  q_app_user_report.campaign_name,date, no_of_impressions,no_of_clicks,no_of_sessions,cpm,cpc,cost_per_session,total_cpm,total_cpc,total_cps,q_app_user_report.ctr,total_cost,start_date,end_date from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name order by date desc;'
+            elif parentValue != 'all' and (dependValue=='' or dependValue is None):
+                #print('comening')
+                q1="select campaign_name,selected_col from q_app_requirements where deptid_id = {}".format(parentValue)
+                cur.execute(q1)
+                res = cur.fetchone()
+                camp=res[0]
+                sel=ast.literal_eval(res[1])[0]
+                #print(sel)
+                camp_name = camp.upper()
+                #col=[]
+                
+                col=head[:4]
+                for i in head:
+                    if i in sel:
+                        col.append(i)
+                    for j in sel:
+                        if j in i and j!=i:
+                            col.append(i)
+                col.append('total_cost')
+                if 'no_of_sessions' in col:
+                    col.insert(-2,'total_cps')
+                
+                #print('col',col)
+                query = f"select {', '.join(col)} ,start_date,end_date,planned_cost"+f" from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name and q_app_requirements.deptid_id ={parentValue} and q_app_requirements.campaign_name={camp} order by date desc;"
+                #print('col',query)
+                
+                #q = "select q_app_user_report.id,q_app_user_report.clientname, q_app_user_report.campaign_name,date, no_of_impressions,no_of_clicks,no_of_sessions,cpm,cpc,cost_per_session,total_cpm,total_cpc,total_cps,total_cost,q_app_user_report.ctr,start_date,end_date,planned_cost from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name and q_app_requirements.deptid_id ={} and q_app_requirements.campaign_name='{}' order by date desc;".format(parentValue,dependValue)
+                
+                cur.execute(query)
+                headers = [i[0] for i in cur.description]
+                #print('col',headers)
+                data = list(cur.fetchall())
+                ach =functools.reduce(lambda a,b:a+b,list(map(lambda l:l[-4],data)))
+                pl = 'NOT SET' if data[0][-1]=='' else float(data[0][-1])
+                report = list(map(lambda x:list(x[1:-3]),data))
+                f_data = list(map(lambda x:{'id':x[0],'values':list(x[1:-3])+['']},data))
+                conn.commit()
+                return render(request,'SAdmin_Reportdata.html',{'data':json.dumps(f_data),'col':json.dumps(headers[1:-3]+['action']),'rd':json.dumps(report),'people':people,'empcontext':empcontext,'status':status(data[0]),'camp_name':camp_name,'planned':pl,'achived':ach,'target':'Hit' if pl!='NOT SET'and ach>=pl else 'Not Hit'})
+            else:
+                q1="select selected_col from q_app_requirements where deptid_id = {} and campaign_name = '{}' ".format(parentValue,dependValue)
+                cur.execute(q1)
+                #col=[]
+                head = ['q_app_user_report.id', 'clientname', 'q_app_user_report.campaign_name', 'date', 'no_of_impressions', 'no_of_clicks', 'no_of_sessions', 'cpm', 'cpc', 'cost_per_session', 'total_cpm', 'total_cpc', 'total_cps', 'total_cost', 'q_app_user_report.ctr', 'clientid_id']
+                sel = ast.literal_eval(cur.fetchone()[0])[0]
+                #print('selcol',sel)
+                col=head[:4]
+                for i in head:
+                    if i in sel:
+                        col.append(i)
+                    for j in sel:
+                        if j in i and j!=i:
+                            col.append(i)
+                col.append('total_cost')
+                if 'no_of_sessions' in col:
+                    col.insert(-2,'total_cps')
+                #print('col',col)
+                query = f"select {', '.join(col)} ,start_date,end_date,planned_cost"+f" from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name and q_app_requirements.deptid_id ={parentValue} and q_app_requirements.campaign_name='{dependValue}' order by date desc;"
+                #print('col',query)
+                
+                #q = "select q_app_user_report.id,q_app_user_report.clientname, q_app_user_report.campaign_name,date, no_of_impressions,no_of_clicks,no_of_sessions,cpm,cpc,cost_per_session,total_cpm,total_cpc,total_cps,total_cost,q_app_user_report.ctr,start_date,end_date,planned_cost from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name and q_app_requirements.deptid_id ={} and q_app_requirements.campaign_name='{}' order by date desc;".format(parentValue,dependValue)
+                camp_name = dependValue.upper()
+                cur.execute(query)
+                headers = [i[0] for i in cur.description]
+                print('col',headers[1:-3]+['action'])
+                data = list(cur.fetchall())
+                
+                ach =functools.reduce(lambda a,b:a+b,list(map(lambda l:l[-4],data)))
+                pl = 'NOT SET' if data[0][-1]=='' else float(data[0][-1])
+                report = list(map(lambda x:list(x[1:-3]),data))
+                f_data = list(map(lambda x:{'id':x[0],'values':list(x[1:-3])},data))
+                print('data',f_data)
+                conn.commit()
+                return render(request,'SAdmin_Reportdata.html',{'data':json.dumps(f_data),'col':json.dumps(headers[1:-3]),'rd':json.dumps(report),'people':people,'empcontext':empcontext,'status':status(data[0]),'camp_name':camp_name,'planned':pl,'achived':ach,'target':'Hit' if pl!='NOT SET'and ach>=pl else 'Not Hit'})     
+        
+        cur.execute(q)
+        headers = [i[0] for i in cur.description]
+        #print(headers)
+        data = list(cur.fetchall())
+        conn.commit()
+        report = list(map(lambda x:list(x[1:-2]),data))
+        data = list(map(lambda x:{'id':x[0],'values':list(x[1:-2])+['']},data))
+        #print('RData',data)
+        #rd = list(map(status,data))
+        
+        #print(data[0],status(data[0]))
+        #ach =functools.reduce(lambda a,b:a+b,list(map(lambda l:l[-4],data)))
+        
+        #print(functools.reduce(lambda a,b:a+b,list(map(lambda l:l[-4],rd))))
+        #rd=user_report.objects.all()
+        #print(queryset)
+        #return render(request,'searchresult.html',{'queryset':queryset})
+        #return render(request,'SAdmin_Reportdata.html',{'rd':rd})
+        #return render(request,'sky.html',{'people':people,'empcontext':empcontext})
+        return render(request,'SAdmin_Reportdata.html',{'data':json.dumps(data),'col':json.dumps(headers[1:-2]+['action']),'rd':json.dumps(report),'people':people,'empcontext':empcontext,'camp_name':None})
+    else:
+        q = 'select q_app_user_report.id,q_app_user_report.clientname, q_app_user_report.campaign_name,date, no_of_impressions,no_of_clicks,no_of_sessions,cpm,cpc,cost_per_session,total_cpm,total_cpc,total_cps,q_app_user_report.ctr,total_cost,start_date,end_date from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name order by date desc;'
+        cur.execute(q)
+        headers = [i[0] for i in cur.description]
+        #print(headers)
+        data = list(cur.fetchall())
+        conn.commit()
+        #print('in_data',data)
+        report = list(map(lambda x:list(x[1:-2]),data))
+        data = list(map(lambda x:{'id':x[0],'values':list(x[1:-2])+['']},data))
+        #print('RData',data)
+        #print('planned',data)
+        #rd = data
+        return render(request,'SAdmin_Reportdata.html',{'data':json.dumps(data),'col':json.dumps(headers[1:-2]+['action']),'rd':json.dumps(report),'people':people,'empcontext':empcontext,'camp_name':None})
+        #return render(request,'sky.html',{'rd':rd,'people':people,'empcontext':str(list(empcontext.values()))})
+
+
+
+
+        if parentValue == 'all' and dependValue is None and date_Presence:
+            query = 'select q_app_user_report.id,q_app_user_report.clientname,  q_app_user_report.campaign_name,date, no_of_impressions,no_of_clicks,no_of_sessions,cpm,cpc,cost_per_session,total_cpm,total_cpc,total_cps,q_app_user_report.ctr,total_cost,start_date,end_date from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name'+date_q+' order by date desc;'
+        else:
+            query = 'select q_app_user_report.id,q_app_user_report.clientname,  q_app_user_report.campaign_name,date, no_of_impressions,no_of_clicks,no_of_sessions,cpm,cpc,cost_per_session,total_cpm,total_cpc,total_cps,q_app_user_report.ctr,total_cost,start_date,end_date from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name order by date desc;'
+
+        if  parentValue != 'all' and (dependValue=='' or dependValue is None) and date_Presence:
+            q1="select campaign_name,selected_col from q_app_requirements where deptid_id = {}".format(parentValue)
+            cur.execute(q1)
+            res = cur.fetchone()
+            camp=res[0]
+            sel=ast.literal_eval(res[1])[0]
+                #print(sel)
+            camp_name = camp.upper()
+                #col=[]
+                
+            col=head[:4]
+            for i in head:
+                if i in sel:
+                    col.append(i)
+                for j in sel:
+                    if j in i and j!=i:
+                        col.append(i)
+            col.append('total_cost')
+            if 'no_of_sessions' in col:
+                col.insert(-2,'total_cps')
+
+            query = f"select {', '.join(col)} ,start_date,end_date,planned_cost"+f" from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name and q_app_requirements.deptid_id ={parentValue} and q_app_requirements.campaign_name={camp} "+date_q+f" order by date desc;"
+        
+        elif(parentValue != 'all' and (dependValue=='' or dependValue is None)):
+            print('p_val:',parentValue)
+            q1="select campaign_name,selected_col from q_app_requirements where deptid_id = {}".format(parentValue)
+            cur.execute(q1)
+            res = cur.fetchone()
+            camp=res[0]
+            sel=ast.literal_eval(res[1])[0]
+                #print(sel)
+            camp_name = camp.upper()
+                #col=[]
+                
+            col=head[:4]
+            for i in head:
+                if i in sel:
+                    col.append(i)
+                for j in sel:
+                    if j in i and j!=i:
+                        col.append(i)
+            col.append('total_cost')
+            if 'no_of_sessions' in col:
+                col.insert(-2,'total_cps')
+            query = f"select {', '.join(col)} ,start_date,end_date,planned_cost"+f" from q_app_user_report inner join q_app_requirements on clientid_id = q_app_requirements.id where q_app_user_report.campaign_name = q_app_requirements.campaign_name and q_app_requirements.deptid_id ={parentValue} and q_app_requirements.campaign_name={camp} order by date desc;"
+
+        if parentValue != 'all' and (dependValue!='' or dependValue is not None) and date_Presence:
+            query=f"select selected_col from q_app_requirements where  deptid_id = {parentValue} and campaign_name = '{dependValue}'"+date_q
+        else:
+            query=f"select selected_col from q_app_requirements where  deptid_id = {parentValue} and campaign_name = '{dependValue}'"

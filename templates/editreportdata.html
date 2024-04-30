@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    {% include 'cdnlines.html' %}
+    <style>
+        form {
+            margin-top: 20%;
+        }
+        
+        .container {
+            margin-top: 2%;
+        }
+
+        .impressions-fields, .clicks-fields, .session-fields , .cost-fields{
+            display:block;
+           
+            
+        }
+        .cost-fields input{
+            width:120px;
+            
+        }
+        
+        
+        .field-container {
+            display: inline-block;
+            margin-right: 10px;
+           
+        }
+        
+        
+        .field-container label {
+            margin-right: 5px;
+        }
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: black;
+          }
+          
+          li {
+            float: left;
+          }
+          
+          li a {
+            display: block;
+            color: rgb(164, 164, 164);
+            text-align: center;
+            font-size:14px;
+            padding: 14px 18px;
+           
+            text-decoration: none;
+          }
+          
+          li a:hover {
+            color: white;
+            text-decoration: none;
+          }
+    </style>
+</head>
+
+<body>
+    <ul>      
+        <li><a href="/clientform/">Client Form</a></li>
+        <li><a href="/viewclientdetails/">Client Details</a></li>
+        <li><a href="/taskcreation/">Campaign Data</a></li>
+        <li><a href="/taskdata/">Campaign Details</a></li>
+        <li><a href="/u_report/">Report Form</a></li>
+        <li><a href="/reportdata/">Report Details</a></li>
+        <li><a href="/login/" >Logout</a></li>
+      </ul>
+     
+      <div class="container">
+        <div class="row">
+            <div class="offset-md-3 col-md-6">
+              
+                <form method="POST" class="shadow-lg mt-5 px-5 py-5" action="/update_report/{{rd.id}}">
+
+                    {% csrf_token %}
+                    <h2 class="text-center">Edit Report</h2><br>
+    
+                    
+                    <label>Client Name</label>
+                    <input type="input"  class="form-control" name="client" id="client" value={{rd.clientname}} readonly>
+                    <label>Campaign Name</label>
+                    <input type="input" class="form-control"  name="camp" id="camp" value={{rd.campaign_name}} readonly>
+                    
+                    
+                    <label>Date</label>
+                    <input type="date" name="date" id="dateFieldId"  required class="form-control" value={{rd.date}}>
+                    <div class="impressions-fields">
+                        <div class="field-container">
+                            <label>NO OF IMPRESSION</label>
+                            <input type="number" name="no_of_impressions" class="form-control" min="0" step="0.01" id="impressions" value={{rd.no_of_impressions}}>
+                        </div>
+                        <div class="field-container">
+                            <label>CPM</label>
+                            <input type="number" name="cpm" class="form-control" step="0.01" min="0" id="impressions_cost" value={{rd.cpm}}>
+
+                        </div>
+                    </div>
+                    <div class="clicks-fields">
+                        <div class="field-container">
+                            <label>NO OF CLICK</label>
+                            <input type="number" name="no_of_clicks" class="form-control" id="clicks" step="0.01" value={{rd.no_of_clicks}} >
+                        </div>
+                        <div class="field-container">
+                            <label>CPC</label>
+                            <input type="number" name="cpc" class="form-control" step="0.01" min="0" id="clicks_cost" value={{rd.cpc}}>
+                        </div>
+                    </div>
+    
+                    <div class="session-fields">
+                        <div class="field-container">
+                            <label >NO OF SESSIONS </label>
+                            <input type="number" min="0" class="form-control" name="no_of_sessions" id='session' value={{rd.no_of_sessions}}>
+                        </div>
+                        <div class="field-container">
+                            <label for=>COST PER SESSION  </label>
+                            <input type="number" min="0" step=0.01 class="form-control" name="cost_per_session" id="session_cost" value={{rd.cost_per_session}}>
+                        </div>
+                    </div>
+
+                    <div class="cost-fields">
+                        <div class="field-container">
+                            <label>TOTAL CPM</label>
+                            <input type="number" name="total_cpm" class="form-control" min="0" step="0.01" id="total_cpm" value={{rd.total_cpm}} readonly>
+                        </div>
+                        <div class="field-container">
+                            <label>TOTAL CPC</label>
+                            <input type="number" name="total_cpc" class="form-control" min="0" step="0.01" id="total_cpc" value={{rd.total_cpc}} readonly>
+                        </div>
+                        <div class="field-container">
+                            <label>TOTAL CPS</label>
+                            <input type="number" name="total_cps" class="form-control" min="0" step="0.01" id="total_cps" value={{rd.total_cps}} readonly>
+                        </div>
+                    </div>
+
+                    <div class="session-fields">
+                        
+                        <div class="field-container">
+                            <label for='ctr'>CTR in %: </label>
+                            <input type="number" min="0" step=0.01 class="form-control" name="ctr" id="ctr" value={{rd.ctr}} readonly>
+                        </div>
+                    </div>
+
+                    <center class="mt-3">
+                        <b> <input type="submit" value="Submit" class="btn bg-success text-white"></b>
+                        <b><input type="reset" value="Clear" class="btn bg-danger text-white ml-3"></b>
+                    </center>
+
+                </form>
+            </div>
+        </div>
+    </div>
+            <script>
+                
+                //alert(JSON.parse("{{option | escapejs}}"))//('{{camp_data.selected_col}}'))
+                const dateField = document.getElementById('dateFieldId');
+                // Set the minimum and maximum date values
+                dateField.min = '{{camp_data.start_date}}';
+                dateField.max = '{{camp_data.end_date}}';
+            function updateResult() {
+                var im = document.getElementById("impressions").value;
+                var cl = document.getElementById("clicks").value;
+                var ses = document.getElementById("session").value;
+                var cpm = document.getElementById("impressions_cost").value;
+                var cpc = document.getElementById("clicks_cost").value;
+                var cps = document.getElementById("session_cost").value;
+                var t_cpm = (im/1000)*cpm;
+                var t_cpc = cl * cpc;
+                var t_cps = ses * cps ;
+                var total_cost = t_cpm + t_cpc + t_cps
+                ctr = ((cl/im)*100).toFixed(2)
+                document.getElementById("total_cpm").value = t_cpm;
+                document.getElementById("total_cpc").value = t_cpc;
+                document.getElementById("total_cps").value = t_cps;
+                document.getElementById("total_cost").value = total_cost;
+                isNaN(ctr) || (!isFinite(ctr)) ?document.getElementById("ctr").value =0:document.getElementById("ctr").value = ctr;
+            }
+    
+            // Listen for changes to the input fields and update the result automatically
+            document.addEventListener("input", updateResult);
+
+            const fields = ['impressions','clicks','session']
+            const options = JSON.parse("{{option | escapejs}}")
+
+            for (let x in fields){
+                const attr1 = document.getElementById(fields[x])
+                const attr2 = document.getElementById(fields[x]+'_cost')
+                if (!options.includes(fields[x])){
+                    attr1.value=0
+                    attr2.value=0
+                    attr1.readOnly = true;
+                    attr1.required = false
+                    attr2.readOnly = true;    
+                }
+                else{
+                    attr1.required = true
+                    attr1.readOnly = false;
+                    attr2.readOnly = false;
+                    
+
+                }
+            }
+    
+            
+        
+            </script>
+            {% for message in messages %}
+            {% if message.tags == 'success' %}
+            <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+            <script>
+                m='{{message}}';
+                swal("success",m,"success")
+            </script>
+            {% endif %}
+            {% endfor %}
+        
+            <!--script for deinied pop up when same date is registered-->
+            {% for message in messages %}
+            {% if message.tags == 'error' %}
+            <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+            <script>
+                m='{{message}}';
+                swal("denied!",m,"error")
+            </script>
+            {% endif %}
+            {% endfor %}
+    
+
+</body>
+
+</html>
+
